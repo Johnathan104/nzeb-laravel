@@ -13,7 +13,9 @@ class Room extends Model
         'room_name',
         'temp',
         'electricity_usage',
-        'building_parts'
+        'building_parts',
+        'lighting',
+        'energy',
     ];
     protected $casts = [
     ];
