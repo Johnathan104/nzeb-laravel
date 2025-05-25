@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\BuildingPartController;
 use App\Http\Controllers\Api\MaintenanceController;
 use App\Http\Controllers\Api\IssueController;
+use App\Http\Controllers\Api\CheckController;
 
 Route::middleware('auth:sanctum')->group(function(){
     Route::get('/user', function (Request $request){
@@ -41,9 +42,12 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::post('/deleteIssue/{id}', [IssueController::class, 'remove']);
     Route::post('/changeStatus/{id}', [IssueController::class, 'changeStatus']);
     Route::get('/issue/self', [IssueController::class, 'getYourIssue']);
+    Route::post('/checks/create', [CheckController::class, 'store']);
+    Route::get('/checks', [CheckController::class, 'index']);
+    Route::put('/checks/{id}', [CheckController::class, 'update']);
 });
 
-
+Route::get('/buildingparts/getall', [BuildingPartController::class, 'getAll']);
 Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/login', [AuthController::class, 'login']);
 
