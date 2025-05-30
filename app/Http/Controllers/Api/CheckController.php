@@ -27,6 +27,15 @@ class CheckController extends Controller
         }
         return response()->json($checks);
     }
+    public function show($id)
+    {
+        $check = Check::find($id);
+        if ($check) {
+            return response()->json($check);
+        } else {
+            return response()->json(['message' => 'Check not found'], 404);
+        }
+    }
 
     /**
      * Store a new check.
@@ -36,11 +45,10 @@ class CheckController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|string|in:pending,closed,in-progress',
+            'status' => 'required|string|in:pending',
             'date-start' => 'required|date',
             'date-end' => 'nullable|date|after_or_equal:date-start',
             'room_id' => 'required|exists:rooms,id',
-            'issues_found' => 'nullable|array',
         ]);
         $user = $request->user();
         
@@ -66,17 +74,14 @@ class CheckController extends Controller
     {
         $check = Check::findOrFail($id);
         $user = $request->user();
-        if($user->id !== $check->user_id && !$user->isAdmin){
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+
         $request->validate([
             'name' => 'string|max:255',
             'description' => 'nullable|string',
-            'status' => 'nullable|string|in:pending,closed,in-progress',
+            'status' => 'nullable|string|in:closed,in-progress,resolved, on hiatus',
             'date-start' => 'nullable|date',
             'date-end' => 'nullable|date|after_or_equal:date-start',
             'room_id' => 'nullable|exists:rooms,id',
-            'issues_found' => 'nullable|array',
         ]);
 
         $check->update($request->only([

@@ -33,7 +33,7 @@ class BuildingPartController extends Controller
         $buildingParts = BuildingPart::all();
         return response()->json($buildingParts);
     }
-    
+
     /**
      * Show the form for creating a new resource.
      */
@@ -56,7 +56,7 @@ class BuildingPartController extends Controller
             'title' => 'required|string|max:255',
             'url' => 'nullable|string|max:255', // URL is optional
             'locations' => 'required|array',    // Ensure locations is an array
-            'problems' => 'required|array',     // Ensure problems is an array
+            'problems' => 'nullable|array',     // Ensure problems is an array
         ]);
 
         $buildingPart = BuildingPart::create($validatedData);
@@ -106,7 +106,6 @@ class BuildingPartController extends Controller
             'title' => 'sometimes|required|string|max:255',
             'url' => 'nullable|string|max:255', // URL is optional
             'locations' => 'sometimes|required|array',      // Ensure locations is an array
-            'problems' => 'sometimes|required|array',       // Ensure problems is an array
         ]);
 
         $buildingPart->update($validatedData);

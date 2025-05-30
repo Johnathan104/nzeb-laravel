@@ -29,7 +29,8 @@ class Check extends Model
         'date-end',
         'room_id',
         'issues_found',
-        'user_id'
+        'user_id',
+        'members', // Add members to fillable
     ];
 
     /**
@@ -40,6 +41,8 @@ class Check extends Model
     protected $casts = [
         'date-start' => 'datetime',
         'date-end' => 'datetime',
+        'members' => 'array', // Cast members as an array
+        'issues_found'=> 'array'
     ];
 
     /**
@@ -48,5 +51,14 @@ class Check extends Model
     public function room()
     {
         return $this->belongsTo(Room::class);
+    }
+
+    /**
+     * Define the relationship with the User model.
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'users', 'id', 'id')
+                    ->whereIn('id', $this->members);
     }
 }

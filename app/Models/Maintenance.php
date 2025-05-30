@@ -15,6 +15,8 @@ class Maintenance extends Model
      */
     protected $fillable = [
         'routine',
+        'checks_id',
+        'pemeliharaan_id',
         'room_id',
         'pelaksana',
         'location',

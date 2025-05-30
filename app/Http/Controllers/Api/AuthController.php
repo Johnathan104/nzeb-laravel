@@ -11,6 +11,15 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 class AuthController extends Controller
 {
+    public function getUsers()
+    {
+        $users = User::all();
+        if($users->isEmpty()){
+            return response('No users found', 404);
+        }else{
+            return response($users, 200);
+        }
+    }
     public function getUser($id){
         $user = User::find($id);
         if(!$user){

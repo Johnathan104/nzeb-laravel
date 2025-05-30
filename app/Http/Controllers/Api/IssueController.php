@@ -4,14 +4,23 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests\AdminRequest;
 use App\Models\Room;
 use App\Models\BuildingPart;
 use App\Models\Issue;
 
 class IssueController extends Controller
 {
-    function getYourIssue(){
+    public function getByPart($id)
+    {
+        $issues = Issue::where('part_type_id', $id)->get();
+        if ($issues->isEmpty()) {
+            return response()->json(['message' => 'No issues found for this type'], 204);
+        }
+        return response()->json($issues, 200);
+    }
+
+    function getYourIssue()
+    {
         $user = request()->user();
         if (!$user) {
             return response()->json(['message' => 'Unauthorized: Token is missing or invalid'], 401);
@@ -22,11 +31,13 @@ class IssueController extends Controller
         }
         return response()->json($issues, 200);
     }
+
     function index()
     {
-        $issues = Issue::all();
+        $issues = Issue::with(['buildingPart', 'check'])->get();
         return response()->json($issues);
     }
+
     function show($id)
     {
         $issue = Issue::find($id);
@@ -49,10 +60,16 @@ class IssueController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'status' => 'required|string',
+            'status' => 'required|string|in:pending',
             'room_id' => 'required|exists:rooms,id',
             'part_type_id' => 'required|exists:building_parts,id',
             'part_name' => 'required|string|max:255',
+            'check_id' => 'required|exists:checks,id',
+            'mode_kegagalan' => 'required|string|max:255', // New field
+            'severity' => 'required|string|max:10', // Changed to string
+            'occurrence' => 'required|string|max:10', // Changed to string
+            'detection' => 'required|string|max:10', // Changed to string
+            'rekomendasi_tindakan' => 'nullable|string|max:255', // New field
         ]);
 
         // Add the authenticated user to the validated data
@@ -72,19 +89,6 @@ class IssueController extends Controller
         // Create the issue
         $issue = Issue::create($validatedData);
 
-        // Decode the existing problems JSON column
-        $problems = json_decode($buildingPart->problems, true) ?? [];
-
-        // Add the new issue to the problems array
-        $newProblem = [
-            'issue_id' => $issue->id,
-        ];
-        $problems[] = $newProblem;
-
-        // Save the updated problems array back to the building part
-        $buildingPart->problems = json_encode($problems);
-        $buildingPart->save();
-
         return response()->json($issue, 201);
     }
 
@@ -99,42 +103,30 @@ class IssueController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'status' => 'required|string',
+            'status' => 'nullable|string|in:in-progress,resolved,closed,on hiatus',
             'room_id' => 'required|exists:rooms,id',
             'part_type_id' => 'required|exists:building_parts,id',
+            'mode_kegagalan' => 'nullable|string|max:255', // New field
+            'severity' => 'nullable|string|max:10', // Changed to string
+            'occurrence' => 'nullable|string|max:10', // Changed to string
+            'detection' => 'nullable|string|max:10', // Changed to string
+            'rekomendasi_tindakan' => 'nullable|string|max:255', // New field
         ]);
 
         $issue = Issue::find($id);
-
         if (!$issue) {
             return response()->json(['message' => 'Issue not found'], 404);
         }
 
-        // Check if the user is an admin or the owner of the issue
-        if (!$user->isAdmin && $issue->user_id != $user->id) {
-            return response()->json(['message' => 'Unauthorized: You do not have permission to update this issue'], 403);
+        // Check if the request has the 'status' column before running the conditional logic
+        if ($request->has('status')) {
+            if ($issue->status == 'pending' && $validatedData['status'] != 'pending' && $user->isAdmin != 1) {
+                return response()->json(['message' => 'You cannot change the status of a pending issue'], 403);
+            }
         }
 
         // Update the issue with the validated data
         $issue->update($validatedData);
-
-        // Update the associated building part's problems array
-        $buildingPart = BuildingPart::find($validatedData['part_type_id']);
-        if ($buildingPart) {
-            $problems = json_decode($buildingPart->problems, true) ?? [];
-
-            // Update the problem entry for this issue
-            foreach ($problems as &$problem) {
-                if ($problem['issue_id'] == $issue->id) {
-                    $problem['name'] = $validatedData['name'];
-                    $problem['description'] = $validatedData['description'];
-                    break;
-                }
-            }
-
-            $buildingPart->problems = json_encode($problems);
-            $buildingPart->save();
-        }
 
         return response()->json(['message' => 'Issue updated successfully', 'issue' => $issue], 200);
     }
@@ -151,12 +143,6 @@ class IssueController extends Controller
             'part_type_id' => 'required|exists:building_parts,id',
         ]);
         $issue = Issue::find($id);
-        if(!$user.isAdmin ==1){
-            return response()->json(['message' => 'Unauthorized: You do not have permission to delete this issue'], 403);
-        }
-        if ($issue.user_id != $user->id) {
-            return response()->json(['message' => 'Unauthorized: You do not have permission to delete this issue'], 403);
-        }
         if ($issue) {
             // Find the associated building part
             $buildingPart = BuildingPart::find($issue->part_type_id);
@@ -173,11 +159,6 @@ class IssueController extends Controller
                     break;
                 }
             }
-
-            // Save the updated problems array back to the building part
-            $buildingPart->problems = json_encode(array_values($problems));
-            $buildingPart->save();
-
             // Delete the issue
             $issue->delete();
             return response()->json(['message' => 'Issue deleted successfully']);

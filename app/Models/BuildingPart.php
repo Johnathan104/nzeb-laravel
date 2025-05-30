@@ -19,7 +19,6 @@ class BuildingPart extends Model
         'perawatan',     // Perawatan field
         'title',         // Title of the building part
         'locations',     // JSON column for locations
-        'problems',      // JSON column for problems
         'url',
     ];
 

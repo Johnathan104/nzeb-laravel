@@ -16,7 +16,13 @@ class Issue extends Model
         'room_id',
         'part_type_id',
         'part_name',
-        'user_id'
+        'user_id',
+        'check_id', // Assuming this is the foreign key for the Check model
+        'mode_kegagalan', // Mode Kegagalan
+        'severity',       // Severity
+        'occurrence',     // Occurrence
+        'detection',      // Detection
+        'rekomendasi_tindakan', // Rekomendasi Tindakan (nullable)
     ];
 
     /**
@@ -33,5 +39,13 @@ class Issue extends Model
     public function buildingPart()
     {
         return $this->belongsTo(BuildingPart::class, 'part_type_id');
+    }
+
+    /**
+     * Relationship with the Check model.
+     */
+    public function check()
+    {
+        return $this->belongsTo(Check::class, 'check_id');
     }
 }

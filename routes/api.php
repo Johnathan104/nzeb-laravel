@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\BuildingPartController;
 use App\Http\Controllers\Api\MaintenanceController;
 use App\Http\Controllers\Api\IssueController;
 use App\Http\Controllers\Api\CheckController;
+use App\Http\Controllers\PemeliharaanController;
 
 Route::middleware('auth:sanctum')->group(function(){
     Route::get('/user', function (Request $request){
@@ -16,6 +17,7 @@ Route::middleware('auth:sanctum')->group(function(){
     });
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/getself', [AuthController::class, 'getSelf']);
+    Route::get('/users', [AuthController::class, 'getUsers']);
     Route::get('/user/{id}', [AuthController::class, 'getUser']);
     Route::get('/admin/getusers', [AdminController::class, 'getAllUsers']);
     Route::post('/admin/edituser', [AdminController::class, 'editUser']);
@@ -41,10 +43,17 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::put('/getissue/{id}', [IssueController::class, 'show']);
     Route::post('/deleteIssue/{id}', [IssueController::class, 'remove']);
     Route::post('/changeStatus/{id}', [IssueController::class, 'changeStatus']);
+    Route::get('/issue/getByPart/{id}', [IssueController::class, 'getByPart']);
     Route::get('/issue/self', [IssueController::class, 'getYourIssue']);
     Route::post('/checks/create', [CheckController::class, 'store']);
     Route::get('/checks', [CheckController::class, 'index']);
+    Route::get('/checks/{id}', [CheckController::class, 'show']);
     Route::put('/checks/{id}', [CheckController::class, 'update']);
+    Route::delete('/checks/{id}', [CheckController::class, 'destroy']);
+    Route::get('/pemeliharaan', [PemeliharaanController::class, 'index']);
+    Route::post('/pemeliharaan', [PemeliharaanController::class, 'store']);
+    Route::put('/pemeliharaan/{id}', [PemeliharaanController::class, 'update']);
+    Route::delete('/pemeliharaan/{id}', [PemeliharaanController::class, 'destroy']);
 });
 
 Route::get('/buildingparts/getall', [BuildingPartController::class, 'getAll']);
